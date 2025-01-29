@@ -10,14 +10,12 @@ def get_video_paths(hashid):
 
     print_green(f'Retrieved {len(video_paths)} videos')
 
-    return {
-        'name': data['playlist']['name'],
-        'videos': video_paths
-    }
+    return video_paths
 
 def main():
     hashid = input('Playlist hashid (https://animethemes.moe/playlist/hashid): ')
-    info = get_video_paths(hashid)
+
+    video_paths = get_video_paths(hashid)
 
     session = requests.Session()
 
@@ -30,7 +28,6 @@ def main():
 
     # Add torrent to the client
     session.post(f'{url}/torrents/add', files=get_torrent_file(), data={'paused': 'true'})
-   # time.sleep(2)
 
     # Get all torrents available in the client
     animethemes_torrent = []
@@ -46,7 +43,7 @@ def main():
     files = session.get(f'{url}/torrents/files?hash={hash}').json()
 
     # Get the list of ids to not download
-    files_to_decrease = [str(file['index']) for file in files if file['name'].replace('AnimeThemes/', '') not in info['videos']]
+    files_to_decrease = [str(file['index']) for file in files if file['name'].replace('AnimeThemes/', '') not in video_paths]
 
     # Set all unwanted files priority to 0
     session.post(f'{url}/torrents/filePrio', data={
