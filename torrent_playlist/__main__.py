@@ -1,3 +1,4 @@
+import argparse
 import json
 import requests
 
@@ -13,7 +14,18 @@ def get_video_paths(hashid):
     return video_paths
 
 def main():
-    hashid = input('Playlist hashid (https://animethemes.moe/playlist/hashid): ')
+    parser = argparse.ArgumentParser(
+        prog='torrent_playlist',
+        description='Download the selected torrent files matching your AnimeThemes playlist',
+        formatter_class=argparse.RawTextHelpFormatter
+    )
+
+    parser.add_argument('--playlist', '-p', required=True, nargs='?', help='Hashid of the playlist (https://animethemes.moe/playlist/hashid)')
+    parser.add_argument('--file', nargs='?', default='AnimeThemes.torrent', help='The .torrent file path')
+    args = parser.parse_args()
+
+    hashid = args.playlist
+    file = args.file
 
     video_paths = get_video_paths(hashid)
 
@@ -27,7 +39,7 @@ def main():
     session.post(f'{url}/auth/login', data={'username': config['username'], 'password': config['password']})
 
     # Add torrent to the client
-    session.post(f'{url}/torrents/add', files=get_torrent_file(), data={'paused': 'true'})
+    session.post(f'{url}/torrents/add', files=get_torrent_file(file), data={'paused': 'true'})
 
     # Get all torrents available in the client
     animethemes_torrent = []
@@ -53,9 +65,9 @@ def main():
     })
 
 # Read AnimeThemes.torrent file
-def get_torrent_file():
+def get_torrent_file(file):
     return {
-        'torrents': open('AnimeThemes.torrent', 'rb')
+        'torrents': open(file, 'rb')
     }
 
 # Get the client API URL
